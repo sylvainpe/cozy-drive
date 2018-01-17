@@ -11,7 +11,7 @@ import FilesViewer from './FilesViewer'
 import {
   FolderContainer as Folder,
   RecentContainer as Recent,
-  FileOpener
+  FileOpenerExternal
 } from '../ducks/files'
 import { Container as Trash } from '../ducks/trash'
 

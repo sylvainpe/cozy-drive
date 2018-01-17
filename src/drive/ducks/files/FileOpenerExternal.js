@@ -6,27 +6,31 @@ import { flowRight as compose } from 'lodash'
 
 import { Spinner, translate } from 'cozy-ui/react'
 import styles from './styles'
+import { getFilesWithLinks, getFolderIdFromRoute } from '../reducers/view'
+import Viewer from 'viewer'
 
 const withAlert = Wrapped =>
   connect(null, dispatch => ({
     alert: data => dispatch({ type: 'ALERT', alert: data })
   }))(Wrapped)
 
+const doNothing = () => {}
+
 class FileOpener extends Component {
   state = { url: null, loading: false, closing: false }
 
   componentWillMount() {
-    this.redirectToFileViewer()
+    this.loadFileInfo()
   }
 
-  async redirectToFileViewer() {
+  async loadFileInfo() {
     const { router, params: { fileId }, alert } = this.props
 
     try {
       const fileInfo = await cozy.client.files.statById(fileId)
       // Go to the parent folder, we replace since we do not want
       // to add a new history entry
-      router.replace(`/folder/${fileInfo.attributes.dir_id}/file/${fileId}`)
+      // router.replace(`/folder/${fileInfo.attributes.dir_id}/file/${fileId}`)
     } catch (e) {
       console.warn(e)
       // Go to the root folder, we replace since we do not want
@@ -44,7 +48,14 @@ class FileOpener extends Component {
       <div className={styles.fileOpener}>
         {loading ? (
           <Spinner size="xxlarge" loadingType="message" middle="true" />
-        ) : null}
+        ) : (
+          <Viewer
+            files={this.props.files}
+            currentIndex={0}
+            onClose={doNothing}
+            onChange={doNothing}
+          />
+        )}
       </div>
     )
   }
