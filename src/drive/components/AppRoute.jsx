@@ -33,7 +33,7 @@ const AppRoute = (
       {__TARGET__ === 'mobile' && (
         <Route path="settings" component={Settings} />
       )}
-      <Route path="file/:fileId" component={FileOpener} />
+      <Route path="file/:fileId" component={FileOpenerExternal} />
     </Route>
     {__TARGET__ === 'mobile' && (
       <Route path="onboarding" component={OnBoarding} />
