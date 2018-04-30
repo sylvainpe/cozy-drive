@@ -168,8 +168,6 @@ class ModalContent extends Component {
 
     return (
       <div className={styles['share-modal-content']}>
-        <ShareByLink document={document} documentType={documentType} />
-        <hr className={styles['divider']} />
         {withSharingCheck(document, documentType, t)(
           <ShareByEmailComingSoon
             document={document}
@@ -177,6 +175,8 @@ class ModalContent extends Component {
             sharingDesc={sharingDesc}
           />
         )}
+        <hr className={styles['divider']} />
+        <ShareByLink document={document} documentType={documentType} />
       </div>
     )
   }
