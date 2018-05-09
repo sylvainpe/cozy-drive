@@ -1,6 +1,7 @@
 import styles from './share.styl'
 
 import React, { Component } from 'react'
+import { Query } from 'cozy-client'
 import PropTypes from 'prop-types'
 import Modal from 'cozy-ui/react/Modal'
 import { getTracker } from 'cozy-ui/react/helpers/tracker'
@@ -134,26 +135,56 @@ class ShareByLink extends Component {
   }
 }
 
-// TODO: wrap it into a Query when the sharing is ready
-const ShareByEmail = ({
-  document,
-  documentType,
-  sharingDesc,
-  share = () => {},
-  unshare = () => {},
-  recipients = [],
-  contacts = { data: [] }
-}) => (
-  <DumbShareByEmail
-    document={document}
-    documentType={documentType}
-    recipients={recipients}
-    contacts={contacts.data}
-    sharingDesc={sharingDesc}
-    onShare={share}
-    onUnshare={unshare}
-  />
-)
+class ShareByEmail extends Component {
+  share = (document, recipients, sharingType, description) => {
+    return Promise.all(
+      recipients.map(
+        recipient =>
+          recipient.id
+            ? recipient
+            : this.props
+                .createContact('io.cozy.contacts', {
+                  email: [{ address: recipient.email, primary: true }]
+                })
+                .then(resp => resp.data)
+      )
+    ).then(recipients =>
+      this.collection(document).share(
+        document,
+        recipients,
+        sharingType,
+        description
+      )
+    )
+  }
+
+  unshare = () => {}
+
+  collection(document) {
+    return this.context.client.collection(document._type)
+  }
+
+  render() {
+    const {
+      document,
+      documentType,
+      sharingDesc,
+      recipients = [],
+      contacts
+    } = this.props
+    return (
+      <DumbShareByEmail
+        document={document}
+        documentType={documentType}
+        recipients={recipients}
+        contacts={contacts}
+        sharingDesc={sharingDesc}
+        onShare={this.share}
+        onUnshare={this.unshare}
+      />
+    )
+  }
+}
 
 const ShareByEmailComingSoon = shunt(
   displayShareEmail,
@@ -169,11 +200,17 @@ class ModalContent extends Component {
     return (
       <div className={styles['share-modal-content']}>
         {withSharingCheck(document, documentType, t)(
-          <ShareByEmailComingSoon
-            document={document}
-            documentType={documentType}
-            sharingDesc={sharingDesc}
-          />
+          <Query query={cozy => cozy.all('io.cozy.contacts')}>
+            {({ data }, { createDocument }) => (
+              <ShareByEmailComingSoon
+                document={document}
+                documentType={documentType}
+                sharingDesc={sharingDesc}
+                contacts={data}
+                createContact={createDocument}
+              />
+            )}
+          </Query>
         )}
         <hr className={styles['divider']} />
         <ShareByLink document={document} documentType={documentType} />
